@@ -80,7 +80,7 @@ class EpisodeReplay:
 
 
     def train(self, learning_rate, discount, start_step=0):
-        for step in range(start_step, len(self.actions)):
+        for step in reversed(range(start_step, len(self.actions))): # reverse so that we don't fit to things that will soon be modified
             expected_rewards = get_expected_rewards(observation=self.observations[step + 1])
             done = (step + 1 == len(self.actions)) if self.is_finished else False
             train_step(
