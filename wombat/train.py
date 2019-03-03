@@ -5,7 +5,20 @@ from wombat.episode_replay import EpisodeReplay
 import wombat.choice as choice
 
 
-def run(model, tf_session, environment, test=False, num_episodes=None, epsilon=None, discount=.99, online_learning_rate=2e-3, offline_learning_rate=2e-3, learning_decay=.97, offline_per_online=16):
+def run(
+    model,
+    tf_session,
+    environment,
+    test=False,
+    num_episodes=None,
+    epsilon=None,
+    discount=.99,
+    online_learning_rate=2e-3,
+    replay_learning_rate=2e-3,
+    learning_decay=.97,
+    online_steps_per_replay=16,
+    max_replay_steps=None,
+    num_replays_after_completed_episode=4):
     '''
     Run model in testing or training mode on given OpenAI-gym-like environment
     Return a list of replays for all episodes
@@ -16,11 +29,12 @@ def run(model, tf_session, environment, test=False, num_episodes=None, epsilon=N
         epsilon = 0 if test else .1
 
     episode_replays = []
+    total_passed_steps = 0
     rolling_average_reward = 0
 
     for episode in trange(num_episodes):
         observation = environment.reset()
-        replay = EpisodeReplay(initial_observation=observation, num_possible_actions=environment.action_space.n)
+        current_replay = EpisodeReplay(initial_observation=observation, num_possible_actions=environment.action_space.n)
         done = False
 
         while True:
@@ -29,40 +43,61 @@ def run(model, tf_session, environment, test=False, num_episodes=None, epsilon=N
 
             if test:
                 environment.render()
-            elif len(replay.rewards) > 0:
-                learning_rate = online_learning_rate * learning_decay ** rolling_average_reward
-                replay.train(
-                    model=model,
-                    tf_session=tf_session,
-                    discount=discount,
-                    learning_rate=learning_rate,
-                    start_step=len(replay.rewards) - 1) # train on last step only
+            else:
+                if total_passed_steps % online_steps_per_replay == 0 and len(episode_replays) > 0:
+                    train_on_replays(
+                        model=model,
+                        tf_session=tf_session,
+                        episode_replays=episode_replays,
+                        num_replays=1,
+                        discount=discount,
+                        learning_rate=replay_learning_rate * learning_decay ** rolling_average_reward,
+                        max_replay_steps=max_replay_steps)
+                if len(current_replay) > 0:
+                    current_replay.train(
+                        model=model,
+                        tf_session=tf_session,
+                        discount=discount,
+                        learning_rate=online_learning_rate * learning_decay ** rolling_average_reward,
+                        start_step=len(current_replay) - 1) # train on last step only
 
             if done:
-                episode_replays.append(replay)
-                rolling_average_reward = rolling_average_reward * learning_decay + replay.total_reward() * (1 - learning_decay)
+                episode_replays.append(current_replay)
+                rolling_average_reward = rolling_average_reward * learning_decay + current_replay.total_reward() * (1 - learning_decay)
                 break
 
             observation, reward, done, info = environment.step(chosen_action)
-            replay.register_step(observation=observation, action=chosen_action, reward=reward, done=done)
+            current_replay.register_step(observation=observation, action=chosen_action, reward=reward, done=done)
+            total_passed_steps += 1
 
         if not test:
-            # offline training
-            learning_rate = offline_learning_rate * learning_decay ** rolling_average_reward
-            train_offline(
+            train_on_replays(
                 model=model,
                 tf_session=tf_session,
                 episode_replays=episode_replays,
-                num_episodes=offline_per_online,
+                num_replays=num_replays_after_completed_episode,
                 discount=discount,
-                learning_rate=learning_rate)
+                learning_rate=replay_learning_rate * learning_decay ** rolling_average_reward,
+                max_replay_steps=max_replay_steps)
 
     environment.close()
     return episode_replays
 
 
-def train_offline(model, tf_session, episode_replays, num_episodes, discount, learning_rate):
+def train_on_replays(model, tf_session, episode_replays, num_replays, discount, learning_rate, max_replay_steps=None):
     '''Randomly (with replacement) pick episode replays and train on them'''
-    replays_to_train_on = random.choices(episode_replays, k=num_episodes)
+    replays_to_train_on = random.choices(episode_replays, k=num_replays)
     for episode_replay in replays_to_train_on:
-        episode_replay.train(model=model, tf_session=tf_session, discount=discount, learning_rate=learning_rate)
+        if max_replay_steps is not None:
+            num_steps_to_train_on = min(len(episode_replay), max_replay_steps)
+        else:
+            num_steps_to_train_on = len(episode_replay)
+        start_step = np.random.randint(0, len(episode_replay) - num_steps_to_train_on + 1)
+        end_step = start_step + num_steps_to_train_on
+        episode_replay.train(
+            model=model,
+            tf_session=tf_session,
+            discount=discount,
+            learning_rate=learning_rate,
+            start_step=start_step,
+            end_step=end_step)

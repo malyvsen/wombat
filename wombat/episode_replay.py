@@ -23,7 +23,7 @@ class EpisodeReplay:
     def train(self, model, tf_session, discount, learning_rate, start_step=0, end_step=None):
         '''Train model on the steps from this episode'''
         if end_step is None:
-            end_step = len(self.actions)
+            end_step = len(self)
         for step in reversed(range(start_step, end_step)): # reverse so that we don't fit to things that will soon be modified
             expected_rewards = choice.expected_rewards(
                 model=model,
@@ -42,3 +42,11 @@ class EpisodeReplay:
 
     def total_reward(self):
         return np.sum(self.rewards)
+
+
+    def __len__(self):
+        '''
+        The number of registered steps
+        Note that the number of registered observations is one greater than this, due to environments producing initial observations
+        '''
+        return len(self.rewards)
