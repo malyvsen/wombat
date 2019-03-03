@@ -20,9 +20,11 @@ class EpisodeReplay:
             self.finished = True
 
 
-    def train(self, model, tf_session, discount, learning_rate, start_step=0):
+    def train(self, model, tf_session, discount, learning_rate, start_step=0, end_step=None):
         '''Train model on the steps from this episode'''
-        for step in reversed(range(start_step, len(self.actions))): # reverse so that we don't fit to things that will soon be modified
+        if end_step is None:
+            end_step = len(self.actions)
+        for step in reversed(range(start_step, end_step)): # reverse so that we don't fit to things that will soon be modified
             expected_rewards = choice.expected_rewards(
                 model=model,
                 tf_session=tf_session,

@@ -5,7 +5,7 @@ from wombat.episode_replay import EpisodeReplay
 import wombat.choice as choice
 
 
-def run(model, tf_session, environment, test=False, num_episodes=None, epsilon=None, discount=.99, online_learning_rate=2e-3, offline_learning_rate=2e-3, learning_decay=.97, offline_episodes=16):
+def run(model, tf_session, environment, test=False, num_episodes=None, epsilon=None, discount=.99, online_learning_rate=2e-3, offline_learning_rate=2e-3, learning_decay=.97, offline_per_online=16):
     '''
     Run model in testing or training mode on given OpenAI-gym-like environment
     Return a list of replays for all episodes
@@ -47,10 +47,22 @@ def run(model, tf_session, environment, test=False, num_episodes=None, epsilon=N
             replay.register_step(observation=observation, action=chosen_action, reward=reward, done=done)
 
         if not test:
-            replays_to_train_on = random.choices(episode_replays, k=offline_episodes)
-            for episode_replay in replays_to_train_on:
-                learning_rate = offline_learning_rate * learning_decay ** rolling_average_reward
-                episode_replay.train(model=model, tf_session=tf_session, discount=discount, learning_rate=learning_rate)
+            # offline training
+            learning_rate = offline_learning_rate * learning_decay ** rolling_average_reward
+            train_offline(
+                model=model,
+                tf_session=tf_session,
+                episode_replays=episode_replays,
+                num_episodes=offline_per_online,
+                discount=discount,
+                learning_rate=learning_rate)
 
     environment.close()
     return episode_replays
+
+
+def train_offline(model, tf_session, episode_replays, num_episodes, discount, learning_rate):
+    '''Randomly (with replacement) pick episode replays and train on them'''
+    replays_to_train_on = random.choices(episode_replays, k=num_episodes)
+    for episode_replay in replays_to_train_on:
+        episode_replay.train(model=model, tf_session=tf_session, discount=discount, learning_rate=learning_rate)
