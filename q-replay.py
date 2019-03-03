@@ -12,17 +12,19 @@ env = gym.make(env_name)
 
 #%% model
 class Model:
-    inputs = tf.placeholder(tf.float32, shape=(None, env.observation_space.shape[0]))
+    observations = tf.placeholder(tf.float32, shape=(None, env.observation_space.shape[0]))
+    actions = tf.placeholder(tf.int32, shape=(None,))
+    actions_one_hot = tf.one_hot(actions, env.action_space.n)
+    inputs = tf.concat((observations, actions_one_hot), -1)
     layers = [inputs]
 
     layers.append(tf.layers.dense(layers[-1], 32, activation=tf.nn.relu))
 
-    expected_rewards = tf.layers.dense(layers[-1], env.action_space.n)
+    expected_rewards = tf.layers.dense(layers[-1], 1)
     layers.append(expected_rewards)
 
-    target_expected_rewards = tf.placeholder(tf.float32, shape=(None, env.action_space.n))
-    loss_weights = tf.placeholder(tf.float32, shape=(None, env.action_space.n))
-    loss = tf.losses.mean_squared_error(target_expected_rewards, expected_rewards, weights=loss_weights)
+    target_expected_rewards = tf.placeholder(tf.float32, shape=(None,))
+    loss = tf.losses.mean_squared_error(tf.reshape(target_expected_rewards, (-1, 1)), expected_rewards)
 
     learning_rate = tf.placeholder(tf.float32, shape=())
     optimize = tf.train.AdamOptimizer(learning_rate).minimize(loss)
@@ -34,16 +36,12 @@ session.run(tf.global_variables_initializer())
 
 
 #%% utils
-def sample_action(distribution):
-    return np.sample(np.arange(env.action_space.n), p=model_outputs)
-
-
-def one_hot(val, max_val):
-    return np.array([i == val for i in range(max_val)], dtype=np.int32)
-
-
 def get_expected_rewards(observation):
-    return session.run(Model.expected_rewards, feed_dict={Model.inputs: [observation]})[0]
+    '''Run model to calculate the expected discounted rewards for each possible action'''
+    feed_dict = {
+        Model.observations: [observation] * env.action_space.n,
+        Model.actions: list(range(env.action_space.n))}
+    return session.run(Model.expected_rewards, feed_dict=feed_dict)
 
 
 def get_best_action(expected_rewards):
@@ -52,12 +50,10 @@ def get_best_action(expected_rewards):
 
 def train_step(observation, action, best_expected_rewards, reward, done, learning_rate, discount):
     discounted_rewards = reward + (0 if done else discount * best_expected_rewards)
-    action_one_hot = one_hot(action, env.action_space.n)
-    target_expected_rewards = action_one_hot * discounted_rewards
     feed_dict = {
-        Model.inputs: [observation],
-        Model.target_expected_rewards: [target_expected_rewards],
-        Model.loss_weights: [action_one_hot],
+        Model.observations: [observation],
+        Model.actions: [action],
+        Model.target_expected_rewards: [discounted_rewards],
         Model.learning_rate: learning_rate}
     session.run(Model.optimize, feed_dict=feed_dict)
 
