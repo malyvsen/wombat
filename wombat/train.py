@@ -1,5 +1,6 @@
 import numpy as np
 import random
+from tqdm import trange
 from wombat.episode_replay import EpisodeReplay
 import wombat.choice as choice
 
@@ -17,7 +18,7 @@ def run(model, tf_session, environment, test=False, num_episodes=None, epsilon=N
     episode_replays = []
     rolling_average_reward = 0
 
-    for episode in range(num_episodes):
+    for episode in trange(num_episodes):
         observation = environment.reset()
         replay = EpisodeReplay(initial_observation=observation, num_possible_actions=environment.action_space.n)
         done = False
@@ -39,7 +40,6 @@ def run(model, tf_session, environment, test=False, num_episodes=None, epsilon=N
 
             if done:
                 episode_replays.append(replay)
-                print(f'Episode {episode} finished, total reward: {replay.total_reward()}')
                 rolling_average_reward = rolling_average_reward * learning_decay + replay.total_reward() * (1 - learning_decay)
                 break
 
