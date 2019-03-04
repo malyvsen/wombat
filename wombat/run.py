@@ -14,7 +14,6 @@ def train(
     discount=.99,
     online_learning_rate=2e-3,
     replay_learning_rate=2e-3,
-    learning_decay=.97,
     online_steps_per_replay=16,
     max_replay_steps=None,
     num_replays_after_completed_episode=4):
@@ -25,7 +24,6 @@ def train(
 
     episode_replays = []
     total_passed_steps = 0
-    rolling_average_reward = 0
 
     for episode in trange(num_episodes):
         observation = environment.reset()
@@ -43,19 +41,18 @@ def train(
                     episode_replays=episode_replays,
                     num_replays=1,
                     discount=discount,
-                    learning_rate=replay_learning_rate * learning_decay ** rolling_average_reward,
+                    learning_rate=replay_learning_rate,
                     max_replay_steps=max_replay_steps)
             if len(current_replay) > 0:
                 current_replay.train(
                     model=model,
                     tf_session=tf_session,
                     discount=discount,
-                    learning_rate=online_learning_rate * learning_decay ** rolling_average_reward,
+                    learning_rate=online_learning_rate,
                     start_step=len(current_replay) - 1) # train on last step only
 
             if done:
                 episode_replays.append(current_replay)
-                rolling_average_reward = rolling_average_reward * learning_decay + current_replay.total_reward() * (1 - learning_decay)
                 break
 
             observation, reward, done, info = environment.step(chosen_action)
@@ -68,7 +65,7 @@ def train(
             episode_replays=episode_replays,
             num_replays=num_replays_after_completed_episode,
             discount=discount,
-            learning_rate=replay_learning_rate * learning_decay ** rolling_average_reward,
+            learning_rate=replay_learning_rate,
             max_replay_steps=max_replay_steps)
 
     environment.close()
