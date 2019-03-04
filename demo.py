@@ -13,13 +13,8 @@ class Model:
     actions = tf.placeholder(tf.int32, shape=(None,)) # obligatory for wombat to work
     actions_one_hot = tf.one_hot(actions, env.action_space.n)
     inputs = tf.concat((observations, actions_one_hot), -1)
-    layers = [inputs]
-
-    layers.append(tf.layers.dense(layers[-1], 32, activation=tf.nn.relu))
-
-    expected_rewards = tf.layers.dense(layers[-1], 1)
-    layers.append(expected_rewards)
-
+    intermediate = tf.layers.dense(inputs, 32, activation=tf.nn.relu)
+    expected_rewards = tf.layers.dense(intermediate, 1)
     target_expected_rewards = tf.placeholder(tf.float32, shape=(None,)) # obligatory for wombat to work
     loss = tf.losses.mean_squared_error(tf.reshape(target_expected_rewards, (-1, 1)), expected_rewards)
 
