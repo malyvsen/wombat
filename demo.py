@@ -24,8 +24,8 @@ class Model:
 
 with tf.Session() as session:
     session.run(tf.global_variables_initializer())
-    episode_replays = train(model=Model, tf_session=session, environment=env)
-    plt.plot([episode_replay.total_reward() for episode_replay in episode_replays])
+    training_episodes = train(model=Model, tf_session=session, environment=env)
+    plt.plot([episode.total_reward() for episode in training_episodes])
     plt.xlabel('episode')
     plt.ylabel('episode reward')
     plt.show()
