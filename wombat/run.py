@@ -2,6 +2,7 @@ import numpy as np
 import random
 from tqdm import trange
 from wombat.episode import Episode
+from wombat.choice import epsilon_greedy
 
 
 def train(
@@ -9,7 +10,7 @@ def train(
     tf_session,
     environment,
     num_episodes=256,
-    random_action_chance=.1,
+    action_chooser=epsilon_greedy(0.1),
     discount=.99,
     online_learning_rate=2e-3,
     replay_learning_rate=2e-3,
@@ -28,7 +29,7 @@ def train(
         episode = Episode()
         episodes.append(episode)
 
-        for step in episode.run(model=model, tf_session=tf_session, environment=environment, random_action_chance=random_action_chance):
+        for step in episode.run(model=model, tf_session=tf_session, environment=environment, action_chooser=action_chooser):
             episode.train(
                 model=model,
                 tf_session=tf_session,
@@ -66,7 +67,7 @@ def test(
     tf_session,
     environment,
     num_episodes=4,
-    random_action_chance=0.05):
+    action_chooser=epsilon_greedy(0.05)):
     '''
     Test model on given OpenAI-gym-like environment
     Return a list of replays for all episodes
@@ -78,7 +79,7 @@ def test(
         episode = Episode(initial_observation=environment.reset())
         episodes.append(episode)
         environment.render()
-        for step in episode.run(model=model, tf_session=tf_session, environment=environment, random_action_chance=random_action_chance):
+        for step in episode.run(model=model, tf_session=tf_session, environment=environment, action_chooser=action_chooser):
             environment.render()
 
     environment.close()

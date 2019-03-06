@@ -1,3 +1,4 @@
+import itertools
 import numpy as np
 import wombat.choice as choice
 
@@ -11,7 +12,7 @@ class Episode:
         self.num_possible_actions = num_possible_actions
 
 
-    def run(self, model, tf_session, environment, random_action_chance):
+    def run(self, model, tf_session, environment, action_chooser):
         '''
         Generator that runs model in OpenAI-gym-like environment until done
         Yield tuples of (observation, reward, done, info, action)
@@ -20,14 +21,13 @@ class Episode:
             self.num_possible_actions = environment.action_space.n
         if len(self.observations) == 0:
             self.observations.append(environment.reset())
-        while True:
+        for step_id in itertools.count():
             expected_rewards = choice.expected_rewards(model, tf_session, self.observations[-1], num_possible_actions=self.num_possible_actions)
-            best_action = choice.best_action(expected_rewards)
-            chosen_action = np.random.randint(self.num_possible_actions) if np.random.random() < random_action_chance else best_action
+            action = action_chooser(expected_rewards=expected_rewards, step_id=step_id, episode=self)
 
-            observation, reward, done, info = environment.step(chosen_action)
-            self.register_step(observation, reward, done, chosen_action)
-            yield observation, reward, done, info, chosen_action
+            observation, reward, done, info = environment.step(action)
+            self.register_step(observation, reward, done, action)
+            yield observation, reward, done, info, action
             if done:
                 break
 
