@@ -1,4 +1,3 @@
-import itertools
 import numpy as np
 import wombat.choice as choice
 
@@ -21,9 +20,9 @@ class Episode:
             self.num_possible_actions = environment.action_space.n
         if len(self.observations) == 0:
             self.observations.append(environment.reset())
-        for step_id in itertools.count():
+        while True:
             expected_rewards = choice.expected_rewards(model, tf_session, self.observations[-1], num_possible_actions=self.num_possible_actions)
-            action = action_chooser(expected_rewards=expected_rewards, step_id=step_id, episode=self)
+            action = action_chooser(expected_rewards=expected_rewards, episode=self)
 
             observation, reward, done, info = environment.step(action)
             self.register_step(observation, reward, done, action)
