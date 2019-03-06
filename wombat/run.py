@@ -58,7 +58,6 @@ def train(
             learning_rate=replay_learning_rate,
             max_replay_steps=max_replay_steps)
 
-    environment.close()
     return episodes
 
 
@@ -82,7 +81,6 @@ def test(
         for step in episode.run(model=model, tf_session=tf_session, environment=environment, action_chooser=action_chooser):
             environment.render()
 
-    environment.close()
     return episodes
 
 
