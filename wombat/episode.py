@@ -2,16 +2,37 @@ import numpy as np
 import wombat.choice as choice
 
 
-class EpisodeReplay:
-    def __init__(self, initial_observation, num_possible_actions):
-        self.observations = [initial_observation]
+class Episode:
+    def __init__(self, initial_observation=None, num_possible_actions=None):
+        self.observations = [initial_observation] if initial_observation is not None else []
         self.actions = []
         self.rewards = []
         self.finished = False
         self.num_possible_actions = num_possible_actions
 
 
-    def register_step(self, observation, action, reward, done):
+    def run(self, model, tf_session, environment, random_action_chance):
+        '''
+        Generator that runs model in OpenAI-gym-like environment until done
+        Yield tuples of (observation, reward, done, info, action)
+        '''
+        if self.num_possible_actions is None:
+            self.num_possible_actions = environment.action_space.n
+        if len(self.observations) == 0:
+            self.observations.append(environment.reset())
+        while True:
+            expected_rewards = choice.expected_rewards(model, tf_session, self.observations[-1], num_possible_actions=self.num_possible_actions)
+            best_action = choice.best_action(expected_rewards)
+            chosen_action = np.random.randint(self.num_possible_actions) if np.random.random() < random_action_chance else best_action
+
+            observation, reward, done, info = environment.step(chosen_action)
+            self.register_step(observation, reward, done, chosen_action)
+            yield observation, reward, done, info, chosen_action
+            if done:
+                break
+
+
+    def register_step(self, observation, reward, done, action):
         '''Register step in which action was taken to yield observation and reward'''
         self.observations.append(observation)
         self.actions.append(action)
