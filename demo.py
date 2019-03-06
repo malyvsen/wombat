@@ -12,14 +12,14 @@ class Model:
     observations = tf.placeholder(tf.float32, shape=(None, env.observation_space.shape[0])) # obligatory for wombat to work
     actions = tf.placeholder(tf.int32, shape=(None,)) # obligatory for wombat to work
     actions_one_hot = tf.one_hot(actions, env.action_space.n)
+    
     inputs = tf.concat((observations, actions_one_hot), -1)
     intermediate = tf.layers.dense(inputs, 32, activation=tf.nn.relu)
     expected_rewards = tf.layers.dense(intermediate, 1)
+
     target_expected_rewards = tf.placeholder(tf.float32, shape=(None,)) # obligatory for wombat to work
     loss = tf.losses.mean_squared_error(tf.reshape(target_expected_rewards, (-1, 1)), expected_rewards)
-
-    learning_rate = tf.placeholder(tf.float32, shape=()) # obligatory for wombat to work
-    optimize = tf.train.AdamOptimizer(learning_rate).minimize(loss) # obligatory for wombat to work
+    optimize = tf.train.AdamOptimizer(2e-3).minimize(loss) # obligatory for wombat to work
 
 
 with tf.Session() as session:

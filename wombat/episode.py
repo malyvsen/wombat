@@ -40,23 +40,23 @@ class Episode:
             self.finished = True
 
 
-    def train(self, model, tf_session, discount, learning_rate, start_step=0, end_step=None):
+    def train(self, model, tf_session, discount, extra_feed={}, start_step=0, end_step=None):
         '''Train model on the steps from this episode'''
         if end_step is None:
             end_step = len(self)
-        for step in reversed(range(start_step, end_step)): # reverse so that we don't fit to things that will soon be modified
+        for step_id in reversed(range(start_step, end_step)): # reverse so that we don't fit to things that will soon be modified
             expected_rewards = choice.expected_rewards(
                 model=model,
                 tf_session=tf_session,
-                observation=self.observations[step + 1],
+                observation=self.observations[step_id + 1],
                 num_possible_actions=self.num_possible_actions)
-            done = (step + 1 == len(self.actions)) if self.finished else False
-            discounted_reward = self.rewards[step] + (0 if done else discount * np.max(expected_rewards))
+            done = (step_id + 1 == len(self.actions)) if self.finished else False
+            discounted_reward = self.rewards[step_id] + (0 if done else discount * np.max(expected_rewards))
             feed_dict = {
-                model.observations: [self.observations[step]],
-                model.actions: [self.actions[step]],
-                model.target_expected_rewards: [discounted_reward],
-                model.learning_rate: learning_rate}
+                model.observations: [self.observations[step_id]],
+                model.actions: [self.actions[step_id]],
+                model.target_expected_rewards: [discounted_reward]}
+            feed_dict.update({tensor: extra_feed[tensor](episode=self, step_id=step_id) for tensor in extra_feed})
             tf_session.run(model.optimize, feed_dict=feed_dict)
 
 
