@@ -18,7 +18,7 @@ class Episode:
         if len(self.observations) == 0:
             self.observations.append(environment.reset())
         while True:
-            action = agent.act(session, self)
+            action = agent.act(session=session, episode=self)
             observation, reward, done, info = environment.step(action)
             self.register_step(observation, reward, done, action)
             yield observation, reward, done, info, action
@@ -40,7 +40,7 @@ class Episode:
         if end_step is None:
             end_step = len(self)
         for step_id in reversed(range(start_step, end_step)): # reverse so that we don't fit to things that will soon be modified
-            agent.train_step(session, self, step_id)
+            agent.train_step(session=session, episode=self, step_id=step_id)
 
 
     def total_reward(self):
