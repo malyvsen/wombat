@@ -1,5 +1,4 @@
 import numpy as np
-import tensorflow as tf
 from wombat.choice import epsilon_greedy
 
 
