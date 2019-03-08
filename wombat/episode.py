@@ -3,27 +3,22 @@ import wombat.choice as choice
 
 
 class Episode:
-    def __init__(self, initial_observation=None, num_possible_actions=None):
+    def __init__(self, initial_observation=None):
         self.observations = [initial_observation] if initial_observation is not None else []
         self.actions = []
         self.rewards = []
         self.finished = False
-        self.num_possible_actions = num_possible_actions
 
 
-    def run(self, model, tf_session, environment, action_chooser):
+    def run(self, agent, session, environment):
         '''
         Generator that runs model in OpenAI-gym-like environment until done
         Yield tuples of (observation, reward, done, info, action)
         '''
-        if self.num_possible_actions is None:
-            self.num_possible_actions = environment.action_space.n
         if len(self.observations) == 0:
             self.observations.append(environment.reset())
         while True:
-            expected_rewards = choice.expected_rewards(model, tf_session, self.observations[-1], num_possible_actions=self.num_possible_actions)
-            action = action_chooser(expected_rewards=expected_rewards, episode=self)
-
+            action = agent.act(session, self)
             observation, reward, done, info = environment.step(action)
             self.register_step(observation, reward, done, action)
             yield observation, reward, done, info, action
@@ -40,24 +35,12 @@ class Episode:
             self.finished = True
 
 
-    def train(self, model, tf_session, discount, extra_feed={}, start_step=0, end_step=None):
-        '''Train model on the steps from this episode'''
+    def train(self, agent, session, start_step=0, end_step=None):
+        '''Train agent on the steps from this episode'''
         if end_step is None:
             end_step = len(self)
         for step_id in reversed(range(start_step, end_step)): # reverse so that we don't fit to things that will soon be modified
-            expected_rewards = choice.expected_rewards(
-                model=model,
-                tf_session=tf_session,
-                observation=self.observations[step_id + 1],
-                num_possible_actions=self.num_possible_actions)
-            done = (step_id + 1 == len(self.actions)) if self.finished else False
-            discounted_reward = self.rewards[step_id] + (0 if done else discount * np.max(expected_rewards))
-            feed_dict = {
-                model.observations: [self.observations[step_id]],
-                model.actions: [self.actions[step_id]],
-                model.target_expected_rewards: [discounted_reward]}
-            feed_dict.update({tensor: extra_feed[tensor](episode=self, step_id=step_id) for tensor in extra_feed})
-            tf_session.run(model.optimize, feed_dict=feed_dict)
+            agent.train_step(session, self, step_id)
 
 
     def total_reward(self):
