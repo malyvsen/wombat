@@ -10,5 +10,5 @@ class RandomDiscrete:
         return np.random.randint(self.num_possible_actions)
 
 
-    def train_step(self, **kwargs):
+    def train(self, **kwargs):
         pass

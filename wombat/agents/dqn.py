@@ -25,22 +25,26 @@ class DQN:
         self.action_chooser = action_chooser
 
 
-    def act(self, session, episode):
-        return self.action_chooser(expected_rewards=self.eval_expected_rewards(session, episode.observations[-1]))
+    def act(self, episode, session):
+        return self.action_chooser(expected_rewards=self.eval_expected_rewards(observation=episode.steps[-1].observation, session=session))
 
 
-    def train_step(self, session, episode, step_id):
-        expected_future_rewards = self.eval_expected_rewards(session=session, observation=episode.observations[step_id + 1])
-        done = (step_id + 1 == len(episode)) if episode.finished else False
-        discounted_reward = episode.rewards[step_id] + (0 if done else self.discount * np.max(expected_future_rewards))
-        feed_dict = {
-            self.observations: [episode.observations[step_id]],
-            self.actions: [episode.actions[step_id]],
-            self.true_rewards: [discounted_reward]}
-        session.run(self.optimize, feed_dict=feed_dict)
+    def train(self, episode, session, start_step=1, end_step=None):
+        '''Train model on steps from given episode'''
+        end_step = end_step if end_step is not None else len(episode)
+        for step_id in reversed(range(start_step, end_step)): # reverse to avoid fitting to things that will soon change
+            if episode.steps[step_id].action is None:
+                continue
+            expected_future_rewards = self.eval_expected_rewards(observation=episode.steps[step_id].observation, session=session)
+            discounted_reward = episode.steps[step_id].reward + (0 if episode.steps[step_id].done else self.discount * np.max(expected_future_rewards))
+            feed_dict = {
+                self.observations: [episode.steps[step_id - 1].observation],
+                self.actions: [episode.steps[step_id].action],
+                self.true_rewards: [discounted_reward]}
+            session.run(self.optimize, feed_dict=feed_dict)
 
 
-    def eval_expected_rewards(self, session, observation):
+    def eval_expected_rewards(self, observation, session):
         '''Run model to calculate the expected discounted rewards for each possible action'''
         feed_dict = {
             self.observations: [observation] * self.num_possible_actions,
