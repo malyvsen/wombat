@@ -27,7 +27,10 @@ class Episode:
 
 
     def register_step(self, observation, reward, done, action):
-        '''Register step in which action was taken to yield observation and reward'''
+        '''
+        Register step in which action was taken to yield observation and reward
+        You usually don't need to do this - Episode.run handles this for you
+        '''
         self.observations.append(observation)
         self.actions.append(action)
         self.rewards.append(reward)
