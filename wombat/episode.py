@@ -1,3 +1,4 @@
+from wombat.context import Context
 from wombat.step import Step
 
 
@@ -9,10 +10,10 @@ class Episode:
     def run(self, agent, environment, session):
         '''Step generator that runs model in OpenAI-gym-like environment until done'''
         if len(self) == 0:
-            self.steps.append(Step(observation=environment.reset()))
+            self.steps.append(Step(observation=environment.reset(), episode=self))
         while True:
             action = agent.act(episode=self, session=session)
-            step = Step.run(environment=environment, action=action)
+            step = Step.run(environment=environment, action=action, episode=self)
             self.steps.append(step)
             yield step
             if step.done:

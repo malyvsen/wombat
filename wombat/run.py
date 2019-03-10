@@ -25,7 +25,7 @@ def train(
         episodes.append(episode)
 
         for step in episode.run(agent=agent, environment=environment, session=session):
-            agent.train(episode=episode, session=session, start_step=len(episode) - 1) # online training - on last step only
+            agent.train(steps=episode.steps[-1:], session=session) # online training - on last step only
             if total_passed_steps % online_steps_per_replay == 0 and len(episodes) > 0:
                 train_on_replays(agent=agent, session=session, episode_replays=episodes, num_replays=1, max_replay_steps=max_replay_steps)
             total_passed_steps += 1
@@ -67,7 +67,5 @@ def train_on_replays(agent, session, episode_replays, num_replays, max_replay_st
         start_step = np.random.randint(0, len(episode_replay) - num_steps_to_train_on + 1)
         end_step = start_step + num_steps_to_train_on
         agent.train(
-            episode=episode_replay,
-            session=session,
-            start_step=start_step,
-            end_step=end_step)
+            steps=episode_replay.steps[start_step : end_step],
+            session=session)

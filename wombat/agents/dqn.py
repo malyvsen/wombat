@@ -29,17 +29,16 @@ class DQN:
         return self.action_chooser(expected_rewards=self.eval_expected_rewards(observation=episode.steps[-1].observation, session=session))
 
 
-    def train(self, episode, session, start_step=1, end_step=None):
-        '''Train model on steps from given episode'''
-        end_step = end_step if end_step is not None else len(episode)
-        for step_id in reversed(range(start_step, end_step)): # reverse to avoid fitting to things that will soon change
-            if episode.steps[step_id].action is None:
+    def train(self, steps, session):
+        '''Train model on given steps'''
+        for step in reversed(steps): # reverse to avoid fitting to things that will soon change
+            if step.action is None:
                 continue
-            expected_future_rewards = self.eval_expected_rewards(observation=episode.steps[step_id].observation, session=session)
-            discounted_reward = episode.steps[step_id].reward + (0 if episode.steps[step_id].done else self.discount * np.max(expected_future_rewards))
+            expected_future_rewards = self.eval_expected_rewards(observation=step.observation, session=session)
+            discounted_reward = step.reward + (0 if step.done else self.discount * np.max(expected_future_rewards))
             feed_dict = {
-                self.observations: [episode.steps[step_id - 1].observation],
-                self.actions: [episode.steps[step_id].action],
+                self.observations: [step.context[-1].observation],
+                self.actions: [step.action],
                 self.true_rewards: [discounted_reward]}
             session.run(self.optimize, feed_dict=feed_dict)
 
