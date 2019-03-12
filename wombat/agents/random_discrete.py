@@ -6,9 +6,9 @@ class RandomDiscrete:
         self.num_possible_actions = num_possible_actions
 
 
-    def act(self, **kwargs):
+    def act(self):
         return np.random.randint(self.num_possible_actions)
 
 
-    def train(self, **kwargs):
+    def train(self):
         pass
