@@ -29,9 +29,9 @@ with tf.Session() as session:
     # a wombat agent is where the decision-making and training take place
     # wombat makes creating custom agents easy, just define act() and train() methods - see wombat.agents.DQN for an example
     agent = wombat.agents.DQN(env.action_space.n, observations, actions, expected_rewards, true_rewards, optimize, session)
-    training_episodes = wombat.train(agent=agent, environment=env, num_episodes=256)
+    training_episodes = wombat.run(agent=agent, environment=env, num_episodes=256, per_step=wombat.train.online(), per_episode=wombat.train.offline())
     plt.plot([episode.total_reward() for episode in training_episodes])
     plt.xlabel('episode')
     plt.ylabel('episode reward')
     plt.show()
-    wombat.test(agent=agent, environment=env, num_episodes=4)
+    wombat.run(agent=agent, environment=env, num_episodes=4, per_step=env.render)

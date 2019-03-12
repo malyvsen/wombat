@@ -1,4 +1,7 @@
 import wombat.agents
+import wombat.choice
 from wombat.episode import Episode
-from wombat.run import train, test
+from wombat.context import Context
+from wombat.run import run
 from wombat.step import Step
+import wombat.train
