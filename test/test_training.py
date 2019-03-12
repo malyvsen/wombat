@@ -13,8 +13,8 @@ def test_dqn():
     actions_one_hot = tf.one_hot(actions, env.action_space.n)
 
     inputs = tf.concat((observations, actions_one_hot), -1)
-    intermediate = tf.layers.dense(inputs, 32, activation=tf.nn.relu)
-    expected_rewards = tf.layers.dense(intermediate, 1)
+    intermediate = tf.layers.Dense(32, activation=tf.nn.relu)(inputs)
+    expected_rewards = tf.layers.Dense(1)(intermediate)
 
     true_rewards = tf.placeholder(tf.float32, shape=(None,))
     loss = tf.losses.mean_squared_error(tf.reshape(true_rewards, (-1, 1)), expected_rewards)
