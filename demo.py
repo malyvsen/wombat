@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 env = gym.make('CartPole-v0')
 
 
+# tensorflow is used here for demonstration purposes, but wombat doesn't require it
+# the sample implementation of DQN does, however, assume that tensorflow is being used
 observations = tf.placeholder(tf.float32, shape=(None, env.observation_space.shape[0]))
 actions = tf.placeholder(tf.int32, shape=(None,))
 actions_one_hot = tf.one_hot(actions, env.action_space.n)
@@ -23,8 +25,10 @@ optimize = tf.train.AdamOptimizer(2e-3).minimize(loss)
 
 
 with tf.Session() as session:
-    agent = wombat.agents.DQN(env.action_space.n, observations, actions, expected_rewards, true_rewards, optimize, session)
     session.run(tf.global_variables_initializer())
+    # a wombat agent is where the decision-making and training take place
+    # wombat makes creating custom agents easy, just define act() and train() methods - see wombat.agents.DQN for an example
+    agent = wombat.agents.DQN(env.action_space.n, observations, actions, expected_rewards, true_rewards, optimize, session)
     training_episodes = wombat.train(agent=agent, environment=env, num_episodes=256)
     plt.plot([episode.total_reward() for episode in training_episodes])
     plt.xlabel('episode')

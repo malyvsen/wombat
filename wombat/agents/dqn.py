@@ -3,7 +3,7 @@ from wombat.choice import epsilon_greedy
 
 
 class DQN:
-    '''A DQN-like agent sample implementation'''
+    '''A DQN-like sample agent using TensorFlow'''
     def __init__(
         self,
         num_possible_actions,
@@ -15,7 +15,7 @@ class DQN:
         session,
         discount=0.99,
         action_chooser=epsilon_greedy(0.1)):
-        '''Create a DQN agent given model as tensors'''
+        '''Create a DQN agent given model as TensorFlow tensors'''
         self.num_possible_actions = num_possible_actions
         self.observations = observations
         self.actions = actions

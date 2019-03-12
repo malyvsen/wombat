@@ -21,8 +21,8 @@ def test_dqn():
     optimize = tf.train.AdamOptimizer(2e-3).minimize(loss)
 
     with tf.Session() as session:
-        agent = wombat.agents.DQN(env.action_space.n, observations, actions, expected_rewards, true_rewards, optimize, session)
         session.run(tf.global_variables_initializer())
+        agent = wombat.agents.DQN(env.action_space.n, observations, actions, expected_rewards, true_rewards, optimize, session)
         training_episodes = wombat.train(agent=agent, environment=env, num_episodes=128, online_steps_per_replay=16, max_replay_steps=None, num_replays_after_completed_episode=4)
         assert np.mean(list(episode.total_reward() for episode in training_episodes[-32:])) > 100
 
