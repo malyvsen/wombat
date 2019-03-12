@@ -25,7 +25,7 @@ def test_dqn():
     with tf.Session() as session:
         session.run(tf.global_variables_initializer())
         training_episodes = wombat.train(agent=agent, session=session, environment=env, num_episodes=128, online_steps_per_replay=16, max_replay_steps=None, num_replays_after_completed_episode=4)
-        assert np.mean(episode.reward for episode in training_episodes[-64:]) > 125
+        assert np.mean(list(episode.total_reward() for episode in training_episodes[-32:])) > 100
 
 
 def test_random_discrete():
@@ -33,4 +33,4 @@ def test_random_discrete():
     with tf.Session() as session:
         session.run(tf.global_variables_initializer())
         training_episodes = wombat.train(agent=agent, session=session, environment=env)
-        assert np.mean(episode.reward for episode in training_episodes) < 25
+        assert np.mean(list(episode.total_reward() for episode in training_episodes)) < 25
