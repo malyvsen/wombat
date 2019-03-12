@@ -22,14 +22,12 @@ loss = tf.losses.mean_squared_error(tf.reshape(true_rewards, (-1, 1)), expected_
 optimize = tf.train.AdamOptimizer(2e-3).minimize(loss)
 
 
-agent = wombat.agents.DQN(env.action_space.n, observations, actions, expected_rewards, true_rewards, optimize)
-
-
 with tf.Session() as session:
+    agent = wombat.agents.DQN(env.action_space.n, observations, actions, expected_rewards, true_rewards, optimize, session)
     session.run(tf.global_variables_initializer())
-    training_episodes = wombat.train(agent=agent, session=session, environment=env, num_episodes=256)
+    training_episodes = wombat.train(agent=agent, environment=env, num_episodes=256)
     plt.plot([episode.total_reward() for episode in training_episodes])
     plt.xlabel('episode')
     plt.ylabel('episode reward')
     plt.show()
-    wombat.test(agent=agent, session=session, environment=env, num_episodes=4)
+    wombat.test(agent=agent, environment=env, num_episodes=4)

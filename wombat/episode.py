@@ -7,12 +7,12 @@ class Episode:
         self.steps = steps if steps is not None else []
 
 
-    def run(self, agent, environment, session):
+    def run(self, agent, environment):
         '''Step generator that runs model in OpenAI-gym-like environment until done'''
         if len(self) == 0:
             self.steps.append(Step(observation=environment.reset(), episode=self))
         while True:
-            action = agent.act(episode=self, session=session)
+            action = agent.act(episode=self)
             step = Step.run(environment=environment, action=action, episode=self)
             self.steps.append(step)
             yield step
