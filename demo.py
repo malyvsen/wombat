@@ -4,6 +4,8 @@ import wombat
 import matplotlib.pyplot as plt
 
 
+# wombat supports OpenAI-gym-like environments out of the box
+# custom environments must have step(), reset() and close() functioning like in gym
 env = gym.make('CartPole-v0')
 
 
