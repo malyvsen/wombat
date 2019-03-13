@@ -1,11 +1,11 @@
 import random
-from wombat.utils import careful_call
+from wombat.utils import smart_call
 
 
 def online(max_last_steps=1):
     '''Return function which trains agent on the last few steps of the last episode'''
     def result(agent, episodes):
-        careful_call(agent.train, steps=episodes[-1].steps[-max_last_steps : ])
+        smart_call(agent.train, steps=episodes[-1].steps[-max_last_steps : ])
     return result
 
 
@@ -20,5 +20,5 @@ def offline(num_replays=4, max_steps_per_replay=None):
                 num_steps_to_train_on = len(replay)
             start_step = random.randrange(len(replay) - num_steps_to_train_on + 1)
             end_step = start_step + num_steps_to_train_on
-            careful_call(agent.train, steps=replay.steps[start_step : end_step])
+            smart_call(agent.train, steps=replay.steps[start_step : end_step])
     return result

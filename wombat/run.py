@@ -1,6 +1,6 @@
 from tqdm import trange
 from wombat.episode import Episode
-from wombat.utils import careful_call
+from wombat.utils import smart_call
 
 
 def run(agent, environment, num_episodes, per_step=None, per_episode=None):
@@ -13,7 +13,7 @@ def run(agent, environment, num_episodes, per_step=None, per_episode=None):
         episode = Episode()
         episodes.append(episode)
         for step in episode.run(agent=agent, environment=environment):
-            careful_call(per_step, agent=agent, episodes=episodes)
-        careful_call(per_episode, agent=agent, episodes=episodes)
+            smart_call(per_step, agent=agent, episodes=episodes)
+        smart_call(per_episode, agent=agent, episodes=episodes)
     environment.close()
     return episodes

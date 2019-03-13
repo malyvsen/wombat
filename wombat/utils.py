@@ -1,14 +1,18 @@
 import inspect
 
 
-def careful_call(function, **kwargs):
+def smart_call(obj, **kwargs):
     '''
-    Call function providing only those keyword args that it explicitly takes, and return what it returned
-    If function proves not to be a function, just return what was passed
+    If obj is callable, call it providing only those keyword args that it explicitly takes, and return obj it returned
+    Otherwise, if it is an iterable, recursively iterate over it
+    Otherwise, just return what was passed
     '''
-    if not callable(function):
-        return function
-    argspec = inspect.getfullargspec(function)
+    if not callable(obj):
+        try:
+            return type(obj)([smart_call(sub_obj, **kwargs) for sub_obj in obj]) # attempt to re-create original type
+        except TypeError:
+            return obj
+    argspec = inspect.getfullargspec(obj)
     accepted_args = argspec.args + argspec.kwonlyargs
     args_to_pass = {arg: kwargs[arg] for arg in kwargs if arg in accepted_args}
-    return function(**args_to_pass)
+    return obj(**args_to_pass)
