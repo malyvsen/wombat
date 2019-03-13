@@ -6,9 +6,9 @@ class RandomDiscrete:
         self.num_possible_actions = num_possible_actions
 
 
-    def act(self):
+    def act(self, episode):
         return np.random.randint(self.num_possible_actions)
 
 
-    def train(self):
+    def train(self, steps):
         pass

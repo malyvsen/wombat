@@ -15,4 +15,5 @@ def run(agent, environment, num_episodes, per_step=None, per_episode=None):
         for step in episode.run(agent=agent, environment=environment):
             careful_call(per_step, agent=agent, episodes=episodes)
         careful_call(per_episode, agent=agent, episodes=episodes)
+    environment.close()
     return episodes
