@@ -35,7 +35,7 @@ agent.train(episode.steps) # episode can be used with wombat, just like that
 ```
 
 ## quick code links
-Full demo of training an agent: [demo.py](master/demo.py)  
+Full demo of training an agent: [demo.py](demo.py)  
 Implementation of DQN agent: [dqn.py](wombat/agents/dqn.py)  
 
 ## requirements
