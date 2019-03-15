@@ -17,8 +17,8 @@ Want to write your own agent? No problem!
 class CyclicAgent: # no base class needed
    def __init__(self, num_possible_actions):
       self.num_possible_actions = num_possible_actions
-   def act(self, episode): # should return selected action
-      return len(episode) % self.num_possible_actions
+   def act(self, steps): # should return selected action
+      return len(steps) % self.num_possible_actions
    def train(self, steps): # should return training loss (eg. for prioritized experience replay)
       return 0
 

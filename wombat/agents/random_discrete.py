@@ -6,7 +6,7 @@ class RandomDiscrete:
         self.num_possible_actions = num_possible_actions
 
 
-    def act(self, episode):
+    def act(self, steps):
         return np.random.randint(self.num_possible_actions)
 
 

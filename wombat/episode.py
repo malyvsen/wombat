@@ -13,7 +13,7 @@ class Episode:
         if len(self) == 0:
             self.steps.append(Step(observation=environment.reset(), episode=self))
         while True:
-            action = smart_call(agent.act, episode=self)
+            action = smart_call(agent.act, steps=self.steps)
             step = Step.run(environment=environment, action=action, episode=self)
             self.steps.append(step)
             yield step

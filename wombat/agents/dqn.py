@@ -27,8 +27,8 @@ class DQN:
         self.action_chooser = action_chooser
 
 
-    def act(self, episode):
-        return self.action_chooser(expected_rewards=self.eval_expected_rewards(observation=episode.steps[-1].observation))
+    def act(self, steps):
+        return self.action_chooser(expected_rewards=self.eval_expected_rewards(observation=steps[-1].observation))
 
 
     def train(self, steps):
