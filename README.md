@@ -1,4 +1,6 @@
-# wombat
+<div align="center">
+<img src="logo.png">
+</div>
 Minimalist, flexible Python framework for reinforcement learning, especially experimental. Optimized for flexibility and ease of use.
 
 ## simplicity
