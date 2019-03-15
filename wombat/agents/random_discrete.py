@@ -11,4 +11,4 @@ class RandomDiscrete:
 
 
     def train(self, steps):
-        pass
+        return 0

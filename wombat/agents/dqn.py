@@ -11,6 +11,7 @@ class DQN:
         actions,
         expected_rewards,
         true_rewards,
+        loss,
         optimize,
         session,
         discount=0.99,
@@ -21,6 +22,7 @@ class DQN:
         self.actions = actions
         self.expected_rewards = expected_rewards
         self.true_rewards = true_rewards
+        self.loss = loss
         self.optimize = optimize
         self.session = session
         self.discount = discount
@@ -32,7 +34,7 @@ class DQN:
 
 
     def train(self, steps):
-        '''Train model on given steps'''
+        losses = []
         for step in reversed(steps): # reverse to avoid fitting to things that will soon change
             if step.action is None:
                 continue
@@ -42,7 +44,9 @@ class DQN:
                 self.observations: [step.context[-1].observation],
                 self.actions: [step.action],
                 self.true_rewards: [discounted_reward]}
-            self.session.run(self.optimize, feed_dict=feed_dict)
+            loss, _ = self.session.run([self.loss, self.optimize], feed_dict=feed_dict)
+            losses.append(loss)
+        return np.mean(losses)
 
 
     def eval_expected_rewards(self, observation):

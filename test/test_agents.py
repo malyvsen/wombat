@@ -22,7 +22,7 @@ def test_dqn():
 
     with tf.Session() as session:
         session.run(tf.global_variables_initializer())
-        agent = wombat.agents.DQN(env.action_space.n, observations, actions, expected_rewards, true_rewards, optimize, session)
+        agent = wombat.agents.DQN(env.action_space.n, observations, actions, expected_rewards, true_rewards, loss, optimize, session)
         training_episodes = wombat.run(agent=agent, environment=env, num_episodes=192, per_step=wombat.train.online(), per_episode=wombat.train.offline())
         assert np.mean(list(episode.total_reward() for episode in training_episodes[-64:])) > 100
 
