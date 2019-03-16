@@ -21,7 +21,7 @@ class CyclicAgent: # no base class needed
       self.num_possible_actions = num_possible_actions
    def act(self, steps): # should return selected action
       return len(steps) % self.num_possible_actions
-   def train(self, steps): # should return training loss (eg. for prioritized experience replay)
+   def train(self, steps): # should return mean training loss (eg. for prioritized experience replay)
       return 0
 
 cyclic_agent = CyclicAgent(env.action_space.n)
