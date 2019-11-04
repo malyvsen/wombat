@@ -37,10 +37,10 @@ agent.train(episode.steps) # episode can be used with wombat, just like that
 ```
 
 ## quick code links
-Full demo of training an agent: [demo.py](demo.py)  
+Full demo of training an agent: [demo.ipynb](demo.ipynb)  
 Implementation of DQN agent: [dqn.py](wombat/agents/dqn.py)  
 
 ## requirements
 `tqdm` - loading bars  
 `numpy` - utilities  
-Technically speaking, that's it - but `gym` and `tensorflow` are both required to run the demo.
+That's it for plain wombat. To run the demo, you'll also need `gym`, `torch` and `matplotlib`. For testing, you'll also need `pytest`.
