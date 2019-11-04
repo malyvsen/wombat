@@ -3,7 +3,7 @@ import numpy as np
 
 def best(expected_rewards):
     '''Find the best action given the expected rewards of taking each action'''
-    return np.argmax(expected_rewards)
+    return np.array(expected_rewards).argmax()
 
 
 def epsilon_greedy(epsilon):
